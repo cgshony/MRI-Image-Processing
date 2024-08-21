@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from ScaleImage import scale_image  # Import the scaling function
 import bicubic_upsample
 import wavelet_haar_transform  # Import Haar transform functions
+import colourize
 
 
 class ImageProcessing:
@@ -53,6 +54,9 @@ class ImageProcessing:
 
         self.process_button = tk.Button(self.ctrl_frame, text="Process Region", command=self.process_selected_region)
         self.process_button.pack(pady=10, padx=10, anchor="n")
+
+        self.pseudo_color_button = tk.Button(self.ctrl_frame, text="Apply Pseudo Color", command=self.apply_pseudo_color)
+        self.pseudo_color_button.pack(pady=10, padx=10, anchor="n")
 
         self.save_button = tk.Button(self.ctrl_frame, text="Save Image", command=self.save_cropped_image)
         self.save_button.pack(pady=10, padx=10, anchor="n")
@@ -198,6 +202,18 @@ class ImageProcessing:
             # Plot the original, transformed, and reconstructed images
             self.plot_images(self.image, transformed_image, reconstructed_image)
 
+    def apply_pseudo_color(self):
+        """
+        Applies pseudocolor mapping to the currently loaded image using functions from colourize.py and displays the result.
+        """
+        if self.image is not None:
+            image_np = np.array(self.image)  # Convert PIL Image to NumPy array (grayscale)
+            minval, maxval = colourize.find_min_max(image_np)  # Find the min and max values in the image
+            pseudo_color_image = colourize.create_pseudo_color_image(image_np, image_np.shape[1], image_np.shape[0],
+                                                                     minval, maxval)
+            self.image = pseudo_color_image  # Update the image with the pseudocolored image
+            self.display_image(pseudo_color_image)  # Display the pseudocolored image
+
     def plot_images(self, original, transformed, reconstructed):
         """
         Plots the original, transformed, and reconstructed images side by side.
@@ -282,7 +298,6 @@ if __name__ == "__main__":
     app = ImageProcessing(root)
     root.mainloop()
 
-s
 
 """Example of a DataFrame which is yet to be implemented to store the data for various images"""
 # data = {
