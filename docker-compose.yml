@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mri
+      POSTGRES_PASSWORD: mri
+      POSTGRES_DB: mri
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mri -d mri"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://mri:mri@db:5432/mri
+      STORAGE_DIR: /data/storage
+      CORS_ORIGINS: '["*"]'
+    volumes:
+      - image_storage:/data/storage
+    ports:
+      - "8000:8000"
+    # Applies migrations, then starts the API.
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+volumes:
+  pgdata:
+  image_storage:

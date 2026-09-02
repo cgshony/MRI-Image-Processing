@@ -1,4 +1,3 @@
-import os
 import colorsys
 import numpy as np
 from PIL import Image
@@ -48,15 +47,3 @@ def convert_to_grayscale(image):
         return image
     else:
         raise ValueError("Unsupported image dimension")
-
-# File paths (update these to your local paths)
-image_path = r"D:\CS\Portfolio\MRI\MRI-Image-Processing\14 no.jpg"
-
-# Process the JPEG/PNG image
-if os.path.exists(image_path):
-    jpeg_image = read_image(image_path)
-    plot_image(jpeg_image, title="Original JPEG Image")
-    grayscale_image = convert_to_grayscale(jpeg_image)
-    minval, maxval = find_min_max(grayscale_image)
-    pseudo_color_image = create_pseudo_color_image(grayscale_image, grayscale_image.shape[1], grayscale_image.shape[0], minval, maxval)
-    plot_image(pseudo_color_image, title="Pseudo Color JPEG Image", cmap=None)

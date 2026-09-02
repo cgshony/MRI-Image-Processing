@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage import io, img_as_float
 
 # Haar transform functions
 def haar_transform_1d(signal):
@@ -106,60 +105,3 @@ def process_image(image):
 
     # Plot the original, transformed, and reconstructed images
     plot_images(image, transformed_image, reconstructed_image, title1="Original Image", title2="Enhanced Haar Transformed Image", title3="Reconstructed Image")
-
-
-# Tkinter GUI code
-import tkinter as tk
-from tkinter import filedialog
-from PIL import Image, ImageTk
-
-class ImageProcessingApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Image Processing with Haar Transform")
-
-        # Main frame
-        main_frame = tk.Frame(root)
-        main_frame.pack(fill=tk.BOTH, expand=True)
-
-        # Canvas for image
-        self.canvas = tk.Canvas(main_frame, cursor="cross", background="white")
-        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        # Control panel
-        self.button_frame = tk.Frame(main_frame, bg="lightgray", width=150)
-        self.button_frame.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # Buttons
-        self.open_button = tk.Button(self.button_frame, text="Open Image", command=self.open_image)
-        self.open_button.pack(pady=10, padx=10, anchor="n")
-
-        self.process_button = tk.Button(self.button_frame, text="Process Image", command=self.process_image)
-        self.process_button.pack(pady=10, padx=10, anchor="n")
-
-        self.image_path = None
-        self.image = None
-
-    def open_image(self):
-        self.image_path = filedialog.askopenfilename()
-        if self.image_path:
-            self.load_image(self.image_path)
-
-    def load_image(self, file_path):
-        self.image = io.imread(file_path, as_gray=True)
-        self.image = img_as_float(self.image)
-        self.display_image(self.image)
-
-    def display_image(self, image):
-        self.photo_image = ImageTk.PhotoImage(image=Image.fromarray((image * 255).astype(np.uint8)))
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.photo_image)
-        self.canvas.config(scrollregion=self.canvas.bbox(tk.ALL))
-
-    def process_image(self):
-        if self.image is not None:
-            process_image(self.image)
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = ImageProcessingApp(root)
-    root.mainloop()
