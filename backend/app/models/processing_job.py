@@ -28,7 +28,16 @@ class ProcessingJob(Base):
     operation: Mapped[str] = mapped_column(String(100), nullable=False)
     params: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     status: Mapped[JobStatus] = mapped_column(
-        Enum(JobStatus, name="job_status"), nullable=False, default=JobStatus.PENDING
+        # values_callable: persist members by their .value ("pending", ...) rather than
+        # SQLAlchemy's default of .name ("PENDING", ...), to match the lowercase labels
+        # the "job_status" Postgres enum type was created with (see the initial migration).
+        Enum(
+            JobStatus,
+            name="job_status",
+            values_callable=lambda cls: [member.value for member in cls],
+        ),
+        nullable=False,
+        default=JobStatus.PENDING,
     )
     result_image_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("images.id"), nullable=True
