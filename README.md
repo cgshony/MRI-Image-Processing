@@ -96,6 +96,23 @@ cd backend
 pytest
 ```
 
+## Frontend
+
+A React + TypeScript workspace UI lives in `frontend/` — upload an image, run one of the four
+processing operations, watch the job poll to completion, and compare original vs. result. It's a
+fully decoupled app (Vite + Tailwind CSS + TanStack Query) that talks to the API over HTTP; it
+doesn't touch or get served by the backend.
+
+```bash
+cd frontend
+npm install
+cp .env.example .env   # VITE_API_BASE_URL, defaults to http://localhost:8000/api/v1
+npm run dev
+```
+
+Expects the backend running at that URL (see above). See [frontend/README.md](frontend/README.md)
+for structure and scripts.
+
 ## Disclaimer
 
 This project processes images for research, educational, and infrastructure purposes. It is not a medical device, is not intended for clinical diagnosis, and has not been evaluated by the FDA or any equivalent regulatory body.
