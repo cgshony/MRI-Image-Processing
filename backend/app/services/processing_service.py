@@ -107,7 +107,13 @@ class ProcessingService:
             status=JobStatus.PENDING,
         )
         self._session.add(job)
-        await self._session.flush()
+        # Commit (not just flush) before returning: `run_job` is about to be
+        # handed to BackgroundTasks and will look this row up through its own,
+        # separate connection. That happens before this request's session-scoped
+        # dependency gets to commit on our behalf, so under normal read-committed
+        # isolation `run_job` would see no row at all - a job created but never
+        # actually processed - unless we commit it ourselves right here.
+        await self._session.commit()
         await self._session.refresh(job)
         return job
 
