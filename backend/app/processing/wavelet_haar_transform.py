@@ -68,6 +68,55 @@ def enhance_high_frequency_bands(transformed_image, factor=1.5):
 
     return transformed_image
 
+
+def _normalize_band(band: np.ndarray, *, centered: bool) -> np.ndarray:
+    """Rescale a Haar-domain band to a displayable 0-255 range.
+
+    Detail bands (LH/HL/HH) are coefficients centered on zero, where the sign
+    carries information (the direction of an edge) - `centered=True` maps 0 to
+    mid-gray (128) and scales symmetrically by the largest-magnitude
+    coefficient, so edges of both polarities stay visible. The approximation
+    band (LL) is a plain (if rescaled) intensity - `centered=False` does a
+    standard min-max stretch instead.
+    """
+    if centered:
+        scale = float(np.abs(band).max())
+        if scale < 1e-6:
+            return np.full_like(band, 128.0)
+        return band / scale * 127.0 + 128.0
+
+    lo, hi = float(band.min()), float(band.max())
+    if hi - lo < 1e-6:
+        return np.zeros_like(band)
+    return (band - lo) / (hi - lo) * 255.0
+
+
+def build_enhanced_channels(image: np.ndarray, factor: float = 1.5) -> list[tuple[str, str, np.ndarray]]:
+    """Haar-transform `image`, boost its high-frequency bands by `factor`, and
+    return every channel worth looking at: the inverse-transformed
+    (reconstructed) image plus each of the 4 Haar sub-bands on its own,
+    normalized for display. List order is the slider order in the UI.
+    """
+    transformed = haar_transform_2d(image)
+    enhanced = enhance_high_frequency_bands(transformed, factor)
+    reconstructed = inverse_haar_transform_2d(enhanced)
+
+    rows, cols = enhanced.shape
+    half_r, half_c = rows // 2, cols // 2
+    ll = enhanced[:half_r, :half_c]
+    lh = enhanced[:half_r, half_c:]
+    hl = enhanced[half_r:, :half_c]
+    hh = enhanced[half_r:, half_c:]
+
+    return [
+        ("reconstructed", "Reconstructed", np.clip(reconstructed, 0, 255)),
+        ("ll", "LL - Approximation", _normalize_band(ll, centered=False)),
+        ("lh", "LH - Horizontal detail", _normalize_band(lh, centered=True)),
+        ("hl", "HL - Vertical detail", _normalize_band(hl, centered=True)),
+        ("hh", "HH - Diagonal detail", _normalize_band(hh, centered=True)),
+    ]
+
+
 # Function to plot images
 def plot_images(original, transformed, reconstructed, title1="Original", title2="Transformed", title3="Reconstructed"):
     plt.figure(figsize=(18, 6))

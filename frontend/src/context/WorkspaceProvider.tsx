@@ -18,6 +18,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [activeOperationByImage, setActiveOperationByImage] = useState<
     Record<ImageId, OperationName>
   >({})
+  const [activeChannelIndexByJob, setActiveChannelIndexByJob] = useState<Record<JobId, number>>(
+    {},
+  )
   const [patientInfoByImage, setPatientInfoByImage] = useState<PatientInfoMap>({})
   const [toast, setToast] = useState<Toast | null>(null)
 
@@ -39,6 +42,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setActiveOperationByImage((prev) => ({ ...prev, [imageId]: operation }))
   }, [])
 
+  const setActiveChannelIndex = useCallback((jobId: JobId, index: number) => {
+    setActiveChannelIndexByJob((prev) => ({ ...prev, [jobId]: index }))
+  }, [])
+
   const setPatientInfo = useCallback((imageId: ImageId, info: PatientInfo) => {
     setPatientInfoByImage((prev) => ({ ...prev, [imageId]: info }))
   }, [])
@@ -54,6 +61,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setActiveJob,
       activeOperationByImage,
       setActiveOperation,
+      activeChannelIndexByJob,
+      setActiveChannelIndex,
       patientInfoByImage,
       setPatientInfo,
       toast,
@@ -67,6 +76,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       setActiveJob,
       activeOperationByImage,
       setActiveOperation,
+      activeChannelIndexByJob,
+      setActiveChannelIndex,
       patientInfoByImage,
       setPatientInfo,
       toast,

@@ -4,6 +4,15 @@ import type { ImageId, JobStatus } from '../api/types'
 import { Spinner } from './ui/Spinner'
 import { StatusPill } from './ui/StatusPill'
 
+/** Lets a pane's viewer step through several named result channels of the
+ * same job (e.g. wavelet_enhance's Haar sub-bands) instead of just showing
+ * one fixed image. */
+export interface ChannelSliderConfig {
+  index: number
+  labels: string[]
+  onChange: (index: number) => void
+}
+
 interface ViewportProps {
   /** Pane title, shown both in the title bar and as the top-left overlay. */
   label: string
@@ -18,6 +27,9 @@ interface ViewportProps {
   status: JobStatus | null
   errorMessage: string | null
   placeholderText: string
+  /** When set (more than one channel available), renders a docked bottom
+   * strip with a slider to step through them, labeled with the active one. */
+  channelSlider?: ChannelSliderConfig | null
 }
 
 /** One tiled viewport pane: title bar, black image area, four-corner metadata
@@ -33,6 +45,7 @@ export function Viewport({
   status,
   errorMessage,
   placeholderText,
+  channelSlider,
 }: ViewportProps) {
   const isBusy = status === 'pending' || status === 'running'
 
@@ -100,6 +113,23 @@ export function Viewport({
           </>
         )}
       </div>
+
+      {channelSlider && channelSlider.labels.length > 1 && (
+        <div className="flex shrink-0 items-center gap-2 border-t border-border bg-surface px-2 py-1.5">
+          <input
+            type="range"
+            min={0}
+            max={channelSlider.labels.length - 1}
+            step={1}
+            value={channelSlider.index}
+            onChange={(event) => channelSlider.onChange(Number(event.target.value))}
+            className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-surface-sunken accent-[var(--color-ink-muted)]"
+          />
+          <span className="w-36 shrink-0 truncate text-right text-[10px] font-medium tracking-wide text-ink-muted uppercase">
+            {channelSlider.labels[channelSlider.index]}
+          </span>
+        </div>
+      )}
     </div>
   )
 }
