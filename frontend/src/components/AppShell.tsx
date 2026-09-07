@@ -1,7 +1,7 @@
+import { ComparisonView } from './ComparisonView'
 import { LibraryRail } from './LibraryRail'
 import { Toolbar } from './Toolbar'
 import { Toast } from './ui/Toast'
-import { ViewportGrid } from './ViewportGrid'
 
 export function AppShell() {
   return (
@@ -10,7 +10,7 @@ export function AppShell() {
 
       <div className="flex flex-1 overflow-hidden">
         <LibraryRail />
-        <ViewportGrid />
+        <ComparisonView />
       </div>
 
       <Toast />

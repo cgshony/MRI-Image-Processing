@@ -5,20 +5,23 @@
  * Design tokens for the workspace UI. Kept as CSS variables (rather than only
  * Tailwind theme extension) so components can reference them directly and the
  * palette stays swappable in one place. Dark, RadiAnt-viewer-inspired studio
- * palette: near-black surfaces, light ink, a warm amber reserved for viewport
- * metadata overlays, and a violet accent for interactive/selected states.
+ * palette: near-black canvas, a near-monochrome grey scale for all chrome (no
+ * accent hue - "selected/active" is conveyed via a lighter grey + border, not
+ * color), a warm amber reserved for viewport metadata overlays, and green/red
+ * kept strictly for job-outcome status.
  */
 :root {
   --color-canvas: #0b0c0e;
-  --color-surface: #17181b;
+  --color-surface: #1a1b1e;
   --color-surface-sunken: #0e0f11;
-  --color-border: #2a2b30;
+  --color-surface-raised: #232427;
+  --color-border: #2f3034;
+  --color-border-strong: #45474c;
   --color-ink: #e8e8ec;
   --color-ink-muted: #9a9aa4;
   --color-ink-subtle: #5c5d64;
-  --color-accent: #7c6cf7;
-  --color-accent-hover: #6d5aef;
-  --color-accent-soft: #2a2545;
+  --color-selected: #3a3c42;
+  --color-selected-ink: #f2f2f4;
   --color-danger: #f0555c;
   --color-danger-soft: #3a1f22;
   --color-success: #3ecf8e;
@@ -34,13 +37,14 @@
   --color-canvas: var(--color-canvas);
   --color-surface: var(--color-surface);
   --color-surface-sunken: var(--color-surface-sunken);
+  --color-surface-raised: var(--color-surface-raised);
   --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
   --color-ink: var(--color-ink);
   --color-ink-muted: var(--color-ink-muted);
   --color-ink-subtle: var(--color-ink-subtle);
-  --color-accent: var(--color-accent);
-  --color-accent-hover: var(--color-accent-hover);
-  --color-accent-soft: var(--color-accent-soft);
+  --color-selected: var(--color-selected);
+  --color-selected-ink: var(--color-selected-ink);
   --color-danger: var(--color-danger);
   --color-danger-soft: var(--color-danger-soft);
   --color-success: var(--color-success);

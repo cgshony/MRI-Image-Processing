@@ -23,7 +23,7 @@ export function Slider({ label, value, min, max, step, onChange, disabled }: Sli
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(Number(event.target.value))}
-        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-surface-sunken accent-[var(--color-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+        className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-surface-sunken accent-[var(--color-ink-muted)] disabled:cursor-not-allowed disabled:opacity-60"
       />
     </label>
   )

@@ -7,6 +7,7 @@ import type { ImageId } from '../api/types'
 import { IMAGES_QUERY_KEY, useUploadImage } from '../hooks/useImages'
 import { useImageGroups } from '../hooks/useImageGroups'
 import { useWorkspace } from '../hooks/useWorkspace'
+import { PatientInfoPanel } from './PatientInfoPanel'
 import { LibraryEntry } from './ui/LibraryEntry'
 import { Spinner } from './ui/Spinner'
 
@@ -43,6 +44,7 @@ export function LibraryRail() {
   const { selectedImageId, selectImage, showToast } = useWorkspace()
   const [isDraggingOver, setIsDraggingOver] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const selectedImage = groups.find((group) => group.original.id === selectedImageId)?.original ?? null
 
   function handleFiles(files: FileList | null) {
     const file = files?.[0]
@@ -78,7 +80,7 @@ export function LibraryRail() {
   }
 
   return (
-    <aside className="flex w-52 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border bg-surface p-3">
+    <aside className="flex w-28 shrink-0 flex-col gap-3 overflow-y-auto border-r border-border bg-surface p-2">
       <button
         onClick={() => fileInputRef.current?.click()}
         onDragOver={(event) => {
@@ -88,16 +90,16 @@ export function LibraryRail() {
         onDragLeave={() => setIsDraggingOver(false)}
         onDrop={handleDrop}
         disabled={uploadImage.isPending}
-        className={`flex w-full flex-col items-center gap-1.5 rounded-lg border-2 border-dashed px-3 py-4 text-center transition-colors
-          ${isDraggingOver ? 'border-accent bg-accent-soft' : 'border-border hover:border-ink-subtle'}`}
+        className={`flex w-full flex-col items-center gap-1.5 rounded-lg border-2 border-dashed px-2 py-3 text-center transition-colors
+          ${isDraggingOver ? 'border-border-strong bg-selected' : 'border-border hover:border-ink-subtle'}`}
       >
         {uploadImage.isPending ? (
           <Spinner />
         ) : (
-          <UploadCloud size={20} className="text-ink-muted" />
+          <UploadCloud size={18} className="text-ink-muted" />
         )}
-        <span className="text-xs text-ink-muted">
-          {uploadImage.isPending ? 'Uploading…' : 'Drop or click to upload'}
+        <span className="text-[10px] text-ink-muted">
+          {uploadImage.isPending ? 'Uploading…' : 'Drop or click'}
         </span>
       </button>
       <input
@@ -110,6 +112,8 @@ export function LibraryRail() {
           event.target.value = ''
         }}
       />
+
+      <PatientInfoPanel image={selectedImage} />
 
       <div className="flex flex-col gap-2">
         {isLoading && <p className="text-xs text-ink-subtle">Loading…</p>}

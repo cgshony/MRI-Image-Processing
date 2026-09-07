@@ -2,7 +2,7 @@ import type { JobStatus } from '../../api/types'
 
 const STATUS_STYLES: Record<JobStatus, string> = {
   pending: 'bg-surface-sunken text-ink-muted',
-  running: 'bg-accent-soft text-accent-hover',
+  running: 'bg-surface-raised text-ink',
   done: 'bg-success-soft text-success',
   failed: 'bg-danger-soft text-danger',
 }

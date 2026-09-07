@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 import type { ImageId, JobId, OperationName } from '../api/types'
 import {
   type ActiveJobMap,
+  type PatientInfo,
+  type PatientInfoMap,
   type Toast,
   type WorkspaceState,
   WorkspaceContext,
@@ -13,6 +15,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [activeJobByImageAndOperation, setActiveJobByImageAndOperation] = useState<ActiveJobMap>(
     {},
   )
+  const [activeOperationByImage, setActiveOperationByImage] = useState<
+    Record<ImageId, OperationName>
+  >({})
+  const [patientInfoByImage, setPatientInfoByImage] = useState<PatientInfoMap>({})
   const [toast, setToast] = useState<Toast | null>(null)
 
   const selectImage = useCallback((imageId: ImageId | null) => {
@@ -29,6 +35,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     [],
   )
 
+  const setActiveOperation = useCallback((imageId: ImageId, operation: OperationName) => {
+    setActiveOperationByImage((prev) => ({ ...prev, [imageId]: operation }))
+  }, [])
+
+  const setPatientInfo = useCallback((imageId: ImageId, info: PatientInfo) => {
+    setPatientInfoByImage((prev) => ({ ...prev, [imageId]: info }))
+  }, [])
+
   const showToast = useCallback((next: Toast) => setToast(next), [])
   const dismissToast = useCallback(() => setToast(null), [])
 
@@ -38,6 +52,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       selectImage,
       activeJobByImageAndOperation,
       setActiveJob,
+      activeOperationByImage,
+      setActiveOperation,
+      patientInfoByImage,
+      setPatientInfo,
       toast,
       showToast,
       dismissToast,
@@ -47,6 +65,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       selectImage,
       activeJobByImageAndOperation,
       setActiveJob,
+      activeOperationByImage,
+      setActiveOperation,
+      patientInfoByImage,
+      setPatientInfo,
       toast,
       showToast,
       dismissToast,

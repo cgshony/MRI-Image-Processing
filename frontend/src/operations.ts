@@ -1,4 +1,4 @@
-import { Palette, ScanEye, Sparkles, Waves } from 'lucide-react'
+import { Maximize2, Palette, Waves, ZoomIn } from 'lucide-react'
 import type { ComponentType } from 'react'
 import type { OperationName } from './api/types'
 
@@ -30,7 +30,7 @@ export const OPERATIONS: OperationMeta[] = [
     id: 'scale_image',
     label: 'Scale',
     description: 'Resize using nearest-neighbor interpolation - fast, blocky at large factors.',
-    icon: ScanEye,
+    icon: Maximize2,
     params: [
       { key: 'scale_factor', label: 'Scale factor', min: 0.5, max: 4, step: 0.1, default: 2 },
     ],
@@ -39,7 +39,7 @@ export const OPERATIONS: OperationMeta[] = [
     id: 'bicubic_upsample',
     label: 'Upsample',
     description: 'Resize using bicubic interpolation - smoother results for enlarging an image.',
-    icon: Sparkles,
+    icon: ZoomIn,
     params: [
       { key: 'scale_factor', label: 'Scale factor', min: 0.5, max: 4, step: 0.1, default: 2 },
     ],
@@ -64,4 +64,9 @@ export function getOperationMeta(id: OperationName): OperationMeta {
   const meta = OPERATIONS.find((operation) => operation.id === id)
   if (!meta) throw new Error(`Unknown operation: ${id}`)
   return meta
+}
+
+/** Each param's slider defaulted to its spec's `default`, keyed by param name. */
+export function defaultParamValues(meta: OperationMeta): Record<string, number> {
+  return Object.fromEntries(meta.params.map((spec) => [spec.key, spec.default]))
 }

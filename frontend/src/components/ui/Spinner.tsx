@@ -5,7 +5,7 @@ export function Spinner({ size = 20 }: { size?: number }) {
       height={size}
       viewBox="0 0 24 24"
       fill="none"
-      className="animate-spin text-accent"
+      className="animate-spin text-ink-muted"
       role="status"
       aria-label="Loading"
     >

@@ -26,10 +26,10 @@ export function LibraryEntry({
       <button
         onClick={onSelect}
         title={image.filename}
-        className={`flex w-full items-center gap-2.5 rounded-lg border-2 p-1.5 text-left transition-colors
-          ${selected ? 'border-accent bg-accent-soft' : 'border-transparent hover:border-border'}`}
+        className={`flex w-full flex-col items-center gap-1 rounded-lg border-2 p-1.5 text-center transition-colors
+          ${selected ? 'border-border-strong bg-selected' : 'border-transparent hover:border-border'}`}
       >
-        <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-md bg-surface-sunken">
+        <span className="relative h-14 w-full shrink-0 overflow-hidden rounded-md bg-surface-sunken">
           <img
             src={getImageFileUrl(image.id)}
             alt={image.filename}
@@ -37,12 +37,12 @@ export function LibraryEntry({
             loading="lazy"
           />
           {resultCount > 0 && (
-            <span className="absolute right-0 bottom-0 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[9px] font-semibold text-white">
+            <span className="absolute right-0.5 bottom-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-ink px-1 text-[9px] font-semibold text-canvas">
               {resultCount}
             </span>
           )}
         </span>
-        <span className="min-w-0 flex-1 truncate text-xs font-medium text-ink">
+        <span className="w-full min-w-0 truncate text-[11px] font-medium text-ink">
           {image.filename}
         </span>
       </button>
