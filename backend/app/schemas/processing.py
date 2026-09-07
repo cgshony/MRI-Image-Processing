@@ -13,6 +13,14 @@ class ProcessRequest(BaseModel):
     params: dict[str, Any] = {}
 
 
+class ChannelOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    key: str
+    label: str
+    image_id: uuid.UUID
+
+
 class ProcessingJobOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -22,6 +30,7 @@ class ProcessingJobOut(BaseModel):
     params: dict[str, Any]
     status: JobStatus
     result_image_id: uuid.UUID | None
+    channels: list[ChannelOut] | None
     error: str | None
     created_at: datetime
     completed_at: datetime | None

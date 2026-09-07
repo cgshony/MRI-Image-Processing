@@ -31,6 +31,12 @@ export interface WorkspaceState {
   activeJobByImageAndOperation: ActiveJobMap
   setActiveJob: (imageId: ImageId, operation: OperationName, jobId: JobId) => void
 
+  /** Which of a job's result channels its viewport is currently showing
+   * (index into `ProcessingJobOut.channels`), keyed by job id - only
+   * meaningful for jobs with more than one channel (wavelet_enhance). */
+  activeChannelIndexByJob: Record<JobId, number>
+  setActiveChannelIndex: (jobId: JobId, index: number) => void
+
   /** Which of the 4 operations the Processed pane's tab is currently showing,
    * per source image. */
   activeOperationByImage: Record<ImageId, OperationName>

@@ -2,7 +2,7 @@ import io
 import uuid
 from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, NamedTuple
 
 import numpy as np
 from PIL import Image as PILImage
@@ -13,11 +13,7 @@ from app.models.processing_job import JobStatus, ProcessingJob
 from app.processing.bicubic_upsample import bicubic_upsample
 from app.processing.colourize import create_pseudo_color_image, find_min_max
 from app.processing.scale_image import scale_image
-from app.processing.wavelet_haar_transform import (
-    enhance_high_frequency_bands,
-    haar_transform_2d,
-    inverse_haar_transform_2d,
-)
+from app.processing.wavelet_haar_transform import build_enhanced_channels
 from app.services.image_service import ImageService
 from app.storage.base import StorageBackend
 
@@ -26,34 +22,43 @@ class JobNotFoundError(Exception):
     """Raised when a requested processing job id has no matching row."""
 
 
-def _op_bicubic_upsample(image: np.ndarray, params: dict[str, Any]) -> np.ndarray:
+class Channel(NamedTuple):
+    """One named, savable result array. Every operation returns a list of
+    these - length 1 for a plain single-image result, longer for an
+    operation like wavelet_enhance that exposes several views of its work."""
+
+    key: str
+    label: str
+    array: np.ndarray
+
+
+def _op_bicubic_upsample(image: np.ndarray, params: dict[str, Any]) -> list[Channel]:
     scale_factor = float(params.get("scale_factor", 2.0))
-    return bicubic_upsample(image, scale_factor)
+    return [Channel("result", "Result", bicubic_upsample(image, scale_factor))]
 
 
-def _op_scale_image(image: np.ndarray, params: dict[str, Any]) -> np.ndarray:
+def _op_scale_image(image: np.ndarray, params: dict[str, Any]) -> list[Channel]:
     scale_factor = float(params.get("scale_factor", 2.0))
-    return scale_image(image, scale_factor)
+    return [Channel("result", "Result", scale_image(image, scale_factor))]
 
 
-def _op_wavelet_enhance(image: np.ndarray, params: dict[str, Any]) -> np.ndarray:
+def _op_wavelet_enhance(image: np.ndarray, params: dict[str, Any]) -> list[Channel]:
     factor = float(params.get("factor", 1.5))
-    transformed = haar_transform_2d(image)
-    enhanced = enhance_high_frequency_bands(transformed, factor)
-    return inverse_haar_transform_2d(enhanced)
+    return [Channel(key, label, array) for key, label, array in build_enhanced_channels(image, factor)]
 
 
-def _op_colourize(image: np.ndarray, params: dict[str, Any]) -> np.ndarray:
+def _op_colourize(image: np.ndarray, params: dict[str, Any]) -> list[Channel]:
     height, width = image.shape
     minval, maxval = find_min_max(image)
     coloured = create_pseudo_color_image(image, width, height, minval, maxval)
-    return np.array(coloured)
+    return [Channel("result", "Result", np.array(coloured))]
 
 
 # Dispatch table used instead of a Processor abstraction (deferred to Phase 2).
 # Each entry takes a grayscale (or, for colourize's output, RGB) numpy array
-# plus the request's `params` dict and returns the resulting array.
-OPERATIONS: dict[str, Callable[[np.ndarray, dict[str, Any]], np.ndarray]] = {
+# plus the request's `params` dict and returns a list of named result
+# channels to save - one for most operations, several for wavelet_enhance.
+OPERATIONS: dict[str, Callable[[np.ndarray, dict[str, Any]], list[Channel]]] = {
     "bicubic_upsample": _op_bicubic_upsample,
     "scale_image": _op_scale_image,
     "wavelet_enhance": _op_wavelet_enhance,
@@ -139,18 +144,27 @@ class ProcessingService:
                 array = _load_grayscale_array(data)
 
                 operation = OPERATIONS[job.operation]
-                result_array = operation(array, job.params)
-                result_bytes, content_type = _array_to_png_bytes(result_array)
+                channels = operation(array, job.params)
 
-                result_image = await images.save_processed(
-                    result_bytes,
-                    filename=f"{job.operation}_{source.filename}",
-                    content_type=content_type,
-                    parent_image_id=source.id,
-                )
+                saved_channels: list[dict[str, Any]] = []
+                for channel in channels:
+                    result_bytes, content_type = _array_to_png_bytes(channel.array)
+                    result_image = await images.save_processed(
+                        result_bytes,
+                        filename=f"{job.operation}_{channel.key}_{source.filename}",
+                        content_type=content_type,
+                        parent_image_id=source.id,
+                    )
+                    saved_channels.append(
+                        {"key": channel.key, "label": channel.label, "image_id": str(result_image.id)}
+                    )
 
                 job.status = JobStatus.DONE
-                job.result_image_id = result_image.id
+                job.channels = saved_channels
+                # Kept for anything still reading the single-result shape: the
+                # first channel is always the "primary" view (the only one for
+                # non-wavelet operations, the reconstructed image for wavelet_enhance).
+                job.result_image_id = uuid.UUID(saved_channels[0]["image_id"])
             except Exception as exc:
                 await session.rollback()
                 job = await session.get(ProcessingJob, job_id)
