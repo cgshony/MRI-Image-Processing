@@ -5,9 +5,10 @@ import { ProcessedPane } from './ProcessedPane'
 import { Viewport } from './Viewport'
 
 /**
- * Two-pane comparison: the Original pinned on the left at all times, and the
- * Processed pane on the right, which switches between the 4 operations'
- * results while the Original never changes.
+ * Two-pane comparison, both panes the same size: the Original pinned on the
+ * left at all times, and the Processed pane on the right, showing whichever
+ * operation's result is active (switched from the toolbar) while the
+ * Original never changes.
  */
 export function ComparisonView() {
   const { selectedImageId } = useWorkspace()

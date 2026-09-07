@@ -1,34 +1,23 @@
-import { Play } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import type { ImageOut, OperationName } from '../api/types'
-import { useJob, useProcessImage } from '../hooks/useJob'
+import { useJob } from '../hooks/useJob'
 import { useWorkspace } from '../hooks/useWorkspace'
-import { OPERATIONS, defaultParamValues, getOperationMeta } from '../operations'
+import { OPERATIONS } from '../operations'
 import { OperationViewport } from './OperationViewport'
-import { Button } from './ui/Button'
-import { Slider } from './ui/Slider'
-import { Spinner } from './ui/Spinner'
-import { StatusPill } from './ui/StatusPill'
 
 interface ProcessedPaneProps {
   sourceImage: ImageOut
 }
 
 /**
- * Right-hand pane of the comparison view: a 4-tab switcher between the
- * operations, a permanently-visible control strip (params + Run + status -
- * the old toolbar popover's contents, un-popover'd) for whichever tab is
- * active, and that operation's result viewport.
+ * Right-hand side of the comparison view. Resolves which operation's result
+ * to show (switching operations and running them both happen from the
+ * toolbar now, via OperationButton) and renders just that result - a single
+ * Viewport, matching the Original pane 1:1 with no extra chrome in between.
  */
 export function ProcessedPane({ sourceImage }: ProcessedPaneProps) {
-  const {
-    activeJobByImageAndOperation,
-    activeOperationByImage,
-    setActiveOperation,
-    setActiveJob,
-    showToast,
-  } = useWorkspace()
-  const processImage = useProcessImage()
+  const { activeJobByImageAndOperation, activeOperationByImage, setActiveOperation } =
+    useWorkspace()
 
   const jobIdFor = (operationId: OperationName) =>
     activeJobByImageAndOperation[sourceImage.id]?.[operationId] ?? null
@@ -73,89 +62,5 @@ export function ProcessedPane({ sourceImage }: ProcessedPaneProps) {
     }
   }, [sourceImage.id, explicitOperationId, defaultOperationId, setActiveOperation])
 
-  const meta = getOperationMeta(activeOperationId)
-
-  // Per-active-operation param values, reset to that operation's defaults
-  // when the tab changes - adjusted directly during render rather than via
-  // an effect, matching the pattern the old OperationButton popover used.
-  const [paramValues, setParamValues] = useState<Record<string, number>>(() =>
-    defaultParamValues(meta),
-  )
-  const [paramsForOperationId, setParamsForOperationId] = useState(activeOperationId)
-  if (paramsForOperationId !== activeOperationId) {
-    setParamsForOperationId(activeOperationId)
-    setParamValues(defaultParamValues(meta))
-  }
-
-  const activeJob = jobByOperation[activeOperationId].data
-  const isRunning = activeJob?.status === 'pending' || activeJob?.status === 'running'
-
-  function handleRun() {
-    processImage.mutate(
-      { imageId: sourceImage.id, operation: activeOperationId, params: paramValues },
-      {
-        onSuccess: (createdJob) => setActiveJob(sourceImage.id, activeOperationId, createdJob.id),
-        onError: (error) => showToast({ kind: 'error', message: error.message }),
-      },
-    )
-  }
-
-  return (
-    <div className="flex flex-1 flex-col gap-2 overflow-hidden">
-      <div className="flex shrink-0 items-center gap-1 rounded-lg border border-border bg-surface p-1">
-        {OPERATIONS.map((operation) => {
-          const Icon = operation.icon
-          const isActive = operation.id === activeOperationId
-          return (
-            <button
-              key={operation.id}
-              onClick={() => setActiveOperation(sourceImage.id, operation.id)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors
-                ${isActive ? 'bg-selected text-selected-ink' : 'text-ink-muted hover:bg-surface-sunken hover:text-ink'}`}
-            >
-              <Icon size={14} strokeWidth={2} />
-              {operation.label}
-            </button>
-          )
-        })}
-      </div>
-
-      <div className="flex shrink-0 flex-col gap-3 rounded-lg border border-border bg-surface p-3">
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-xs text-ink-muted">{meta.description}</p>
-          {activeJob && <StatusPill status={activeJob.status} />}
-        </div>
-
-        {meta.params.length > 0 && (
-          <div className="flex flex-col gap-3">
-            {meta.params.map((spec) => (
-              <Slider
-                key={spec.key}
-                label={spec.label}
-                value={paramValues[spec.key] ?? spec.default}
-                min={spec.min}
-                max={spec.max}
-                step={spec.step}
-                disabled={isRunning}
-                onChange={(value) => setParamValues((prev) => ({ ...prev, [spec.key]: value }))}
-              />
-            ))}
-          </div>
-        )}
-
-        <Button variant="primary" onClick={handleRun} disabled={isRunning || processImage.isPending}>
-          {isRunning || processImage.isPending ? <Spinner size={16} /> : <Play size={16} />}
-          Run {meta.label}
-        </Button>
-
-        {activeJob?.status === 'failed' && activeJob.error && (
-          <p className="text-xs text-danger">{activeJob.error}</p>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-hidden">
-        <OperationViewport operationId={activeOperationId} sourceImageId={sourceImage.id} />
-      </div>
-    </div>
-  )
+  return <OperationViewport operationId={activeOperationId} sourceImageId={sourceImage.id} />
 }

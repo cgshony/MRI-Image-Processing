@@ -1,10 +1,10 @@
 import { Scan } from 'lucide-react'
 import { useWorkspace } from '../hooks/useWorkspace'
 import { OPERATIONS } from '../operations'
+import { OperationButton } from './OperationButton'
 
 export function Toolbar() {
-  const { selectedImageId, activeOperationByImage, setActiveOperation } = useWorkspace()
-  const activeOperationId = selectedImageId ? activeOperationByImage[selectedImageId] : undefined
+  const { selectedImageId } = useWorkspace()
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b border-border bg-surface px-4">
@@ -16,24 +16,9 @@ export function Toolbar() {
       <div className="h-6 w-px bg-border" />
 
       <div className="flex items-center gap-1.5">
-        {OPERATIONS.map((operation) => {
-          const Icon = operation.icon
-          const isActive = !!selectedImageId && operation.id === activeOperationId
-          return (
-            <button
-              key={operation.id}
-              onClick={() => selectedImageId && setActiveOperation(selectedImageId, operation.id)}
-              disabled={!selectedImageId}
-              title={`Show ${operation.label}`}
-              className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors
-                disabled:cursor-not-allowed disabled:opacity-40
-                ${isActive ? 'bg-selected text-selected-ink' : 'text-ink-muted hover:bg-surface-sunken hover:text-ink'}`}
-            >
-              <Icon size={16} strokeWidth={2} />
-              {operation.label}
-            </button>
-          )
-        })}
+        {OPERATIONS.map((operation) => (
+          <OperationButton key={operation.id} operation={operation} disabled={!selectedImageId} />
+        ))}
       </div>
     </header>
   )
