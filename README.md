@@ -1,6 +1,6 @@
 # MRI Image Processing
 
-**Live demo:** _(add the deployed Vercel URL here once available)_
+**Live demo:** [mri-image-processing.vercel.app](https://mri-image-processing.vercel.app/)
 
 An async FastAPI backend for uploading MRI-style images and running classical image-processing operations on them as background jobs — built as a hands-on way to learn image processing and modern FastAPI/SQLAlchemy architecture, and evolving toward a small set of real, non-diagnostic problems in medical imaging.
 
