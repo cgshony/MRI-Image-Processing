@@ -10,3 +10,5 @@ venv/
 .mypy_cache/
 .idea/
 .vscode/
+.neon
+.env.local
