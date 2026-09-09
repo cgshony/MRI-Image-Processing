@@ -1,0 +1,20 @@
+# Render Blueprint — lets Render create the backend service from repo config
+# instead of clicking through the dashboard by hand.
+# Usage: Render dashboard -> New -> Blueprint -> select this repo.
+# DATABASE_URL and CORS_ORIGINS are marked sync: false (secrets/per-deploy values)
+# and must be filled in via the Render dashboard after the blueprint is created.
+services:
+  - type: web
+    name: mri-image-processing-backend
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: STORAGE_DIR
+        value: storage

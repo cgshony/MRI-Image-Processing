@@ -1,5 +1,7 @@
 # MRI Image Processing
 
+**Live demo:** _(add the deployed Vercel URL here once available)_
+
 An async FastAPI backend for uploading MRI-style images and running classical image-processing operations on them as background jobs — built as a hands-on way to learn image processing and modern FastAPI/SQLAlchemy architecture, and evolving toward a small set of real, non-diagnostic problems in medical imaging.
 
 ## Motivation
@@ -95,6 +97,19 @@ Run tests:
 cd backend
 pytest
 ```
+
+## Deployment
+
+Free-tier deployment across three providers:
+
+- **Frontend → [Vercel](https://vercel.com)** — static Vite build, project root `frontend/`, env var `VITE_API_BASE_URL` pointed at the backend's `/api/v1`.
+- **Backend → [Render](https://render.com)** (free Web Service) — deployed from `backend/Dockerfile` (or the [render.yaml](render.yaml) Blueprint in the repo root), env vars `DATABASE_URL` and `CORS_ORIGINS` set in the Render dashboard.
+- **Database → [Neon](https://neon.tech)** (free Postgres) — used instead of Render's own free Postgres, which auto-deletes 30 days after creation; Neon's free tier doesn't expire.
+
+Known free-tier trade-offs:
+
+- Render's free instance spins down after ~15 min idle; the first request afterward takes ~30-60s to wake up.
+- Uploaded/processed images live on the backend's local disk (`STORAGE_DIR`), which is **ephemeral** on Render's free tier — files can be lost on restart/redeploy. Fine for a demo link; a durable fix would swap `LocalDiskStorage` (`backend/app/storage/`) for an S3-compatible backend (e.g. Cloudflare R2), which the existing `StorageBackend` interface already supports without touching services.
 
 ## Frontend
 
