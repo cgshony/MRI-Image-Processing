@@ -109,7 +109,20 @@ Free-tier deployment across three providers:
 Known free-tier trade-offs:
 
 - Render's free instance spins down after ~15 min idle; the first request afterward takes ~30-60s to wake up.
-- Uploaded/processed images live on the backend's local disk (`STORAGE_DIR`), which is **ephemeral** on Render's free tier — files can be lost on restart/redeploy. Fine for a demo link; a durable fix would swap `LocalDiskStorage` (`backend/app/storage/`) for an S3-compatible backend (e.g. Cloudflare R2), which the existing `StorageBackend` interface already supports without touching services.
+- By default, uploaded/processed images live on the backend's local disk (`STORAGE_DIR`), which is **ephemeral** on Render's free tier — files (and their disk-backed bytes) are lost on restart/redeploy even though their database rows survive. Fix this by switching to the S3-compatible storage backend (below).
+
+### Object storage (Cloudflare R2)
+
+`app/storage/` defines a `StorageBackend` interface with two implementations: `LocalDiskStorage` (default) and `S3StorageBackend`, which works with any S3-compatible provider. To use Cloudflare R2's free tier (10GB storage, no egress fees):
+
+1. Create an R2 bucket in the Cloudflare dashboard, then an API token scoped to it (Account → R2 → Manage API Tokens) to get an access key ID and secret.
+2. Set these env vars (on Render, and in `backend/.env` for local testing):
+   - `STORAGE_BACKEND=s3`
+   - `S3_BUCKET=<your bucket name>`
+   - `S3_ENDPOINT_URL=https://<account id>.r2.cloudflarestorage.com`
+   - `S3_ACCESS_KEY_ID=<access key id>`
+   - `S3_SECRET_ACCESS_KEY=<secret access key>`
+3. Redeploy. New uploads/processed images now persist in R2 regardless of backend restarts. (Existing rows created under `local` storage before the switch won't have a matching R2 object — re-upload them.)
 
 ## Frontend
 

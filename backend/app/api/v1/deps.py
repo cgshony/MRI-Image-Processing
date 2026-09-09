@@ -9,12 +9,21 @@ from app.services.image_service import ImageService
 from app.services.processing_service import ProcessingService
 from app.storage.base import StorageBackend
 from app.storage.local_disk import LocalDiskStorage
+from app.storage.s3 import S3StorageBackend
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 
 def get_storage(settings: SettingsDep) -> StorageBackend:
+    if settings.storage_backend == "s3":
+        return S3StorageBackend(
+            settings.s3_bucket,
+            endpoint_url=settings.s3_endpoint_url,
+            access_key_id=settings.s3_access_key_id,
+            secret_access_key=settings.s3_secret_access_key,
+            region_name=settings.s3_region,
+        )
     return LocalDiskStorage(settings.storage_dir)
 
 
