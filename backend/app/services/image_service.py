@@ -3,10 +3,12 @@ import uuid
 from pathlib import Path
 
 from PIL import Image as PILImage
-from sqlalchemy import select
+from sqlalchemy import delete as sa_delete
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.image import Image
+from app.models.processing_job import ProcessingJob
 from app.storage.base import StorageBackend
 
 
@@ -56,7 +58,27 @@ class ImageService:
         return data, image.content_type
 
     async def delete(self, image_id: uuid.UUID) -> None:
+        """Delete an image, clearing every other row's FK reference to it first
+        (Postgres otherwise rejects the delete with a foreign-key violation --
+        e.g. a processing job run on this image, or a sibling image derived
+        from it, both point back at this row).
+        """
         image = await self.get(image_id)
+
+        # Jobs run *on* this image are meaningless without it.
+        await self._session.execute(sa_delete(ProcessingJob).where(ProcessingJob.image_id == image_id))
+        # Jobs that merely *produced* this image (as a processed result) keep
+        # their history; they just forget the now-gone result.
+        await self._session.execute(
+            update(ProcessingJob)
+            .where(ProcessingJob.result_image_id == image_id)
+            .values(result_image_id=None)
+        )
+        # Images derived from this one become standalone rather than blocking the delete.
+        await self._session.execute(
+            update(Image).where(Image.parent_image_id == image_id).values(parent_image_id=None)
+        )
+
         await self._storage.delete(image.storage_path)
         await self._session.delete(image)
         await self._session.flush()
