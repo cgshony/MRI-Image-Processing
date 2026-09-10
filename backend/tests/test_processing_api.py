@@ -72,16 +72,19 @@ async def test_get_unknown_job_returns_404(client):
     assert response.status_code == 404
 
 
-async def test_wavelet_enhance_produces_five_labeled_channels(client):
+async def test_wavelet_enhance_produces_labeled_pyramid_channels(client):
     # Even dimensions on both axes so the row- and column-wise Haar passes
-    # each split cleanly in half.
+    # each split cleanly in half. 4x4 only has room for 2 real pyramid
+    # levels (4x4 -> 2x2 -> 1x1) - requesting more than that exercises the
+    # "stop once the region drops below 2x2" clamp in
+    # haar_transform_2d_multilevel.
     buffer = io.BytesIO()
     PILImage.new("L", (4, 4), color=128).save(buffer, format="PNG")
     image_id = await _upload(client, buffer.getvalue())
 
     process = await client.post(
         f"/api/v1/images/{image_id}/process",
-        json={"operation": "wavelet_enhance", "params": {"factor": 1.5}},
+        json={"operation": "wavelet_enhance", "params": {"factor": 1.5, "levels": 3}},
     )
     job_id = process.json()["id"]
 
@@ -90,7 +93,16 @@ async def test_wavelet_enhance_produces_five_labeled_channels(client):
     assert job["status"] == "done"
 
     channels = job["channels"]
-    assert [c["key"] for c in channels] == ["reconstructed", "ll", "lh", "hl", "hh"]
+    assert [c["key"] for c in channels] == [
+        "reconstructed",
+        "ll",
+        "lh_1",
+        "hl_1",
+        "hh_1",
+        "lh_2",
+        "hl_2",
+        "hh_2",
+    ]
     assert all(c["label"] for c in channels)
     # The first channel (the reconstructed/enhanced image) is still what
     # `result_image_id` points at, for anything reading the single-result shape.

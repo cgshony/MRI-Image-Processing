@@ -47,9 +47,13 @@ export const OPERATIONS: OperationMeta[] = [
   {
     id: 'wavelet_enhance',
     label: 'Enhance',
-    description: 'Boost fine detail via a 2D Haar wavelet transform on the high-frequency bands.',
+    description:
+      'Boost fine detail via a multi-level 2D Haar wavelet pyramid, with a compressive per-band gain that boosts subtle texture more than strong edges.',
     icon: Waves,
-    params: [{ key: 'factor', label: 'Enhance factor', min: 0.5, max: 3, step: 0.1, default: 1.5 }],
+    params: [
+      { key: 'factor', label: 'Enhance factor', min: 0.5, max: 3, step: 0.1, default: 1.5 },
+      { key: 'levels', label: 'Pyramid levels', min: 1, max: 5, step: 1, default: 3 },
+    ],
   },
   {
     id: 'colourize',
