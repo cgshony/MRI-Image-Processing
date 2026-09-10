@@ -44,7 +44,10 @@ def _op_scale_image(image: np.ndarray, params: dict[str, Any]) -> list[Channel]:
 
 def _op_wavelet_enhance(image: np.ndarray, params: dict[str, Any]) -> list[Channel]:
     factor = float(params.get("factor", 1.5))
-    return [Channel(key, label, array) for key, label, array in build_enhanced_channels(image, factor)]
+    levels = int(params.get("levels", 3))
+    return [
+        Channel(key, label, array) for key, label, array in build_enhanced_channels(image, factor, levels)
+    ]
 
 
 def _op_colourize(image: np.ndarray, params: dict[str, Any]) -> list[Channel]:
